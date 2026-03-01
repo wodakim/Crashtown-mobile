@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Crashtown - Play</title>
+    <link rel="stylesheet" href="play.css" />
+  </head>
+  <body>
+    <main class="play-app" aria-label="Course en ligne droite">
+      <section class="road" id="road"></section>
+      <section class="streetlights" id="streetlights" aria-hidden="true"></section>
+
+      <section class="score-box">SCORE : <span id="scoreValue">0000000000</span></section>
+
+      <div class="radio-controls" aria-label="Contrôle radio en course">
+        <button id="prevTrackBtn" class="radio-mini-btn" aria-label="Musique précédente">⏮</button>
+        <button id="loopTrackBtn" class="radio-mini-btn" aria-label="Boucler musique actuelle" aria-pressed="false">🔁</button>
+        <button id="nextTrackBtn" class="radio-mini-btn" aria-label="Musique suivante">⏭</button>
+      </div>
+
+      <div class="top-controls">
+        <button id="pauseBtn" class="circle-btn" aria-label="Pause">
+          <img src="./Assets/UI/Buttons/ui_btn_pause_base_v01.svg" alt="Pause" data-asset-name="ui_btn_pause_base_v01.svg" />
+        </button>
+        <button id="settingsBtn" class="circle-btn" aria-label="Paramètres">
+          <img src="./Assets/UI/Buttons/ui_btn_settings_icon_v01.svg" alt="Paramètres" data-asset-name="ui_btn_settings_icon_v01.svg" />
+        </button>
+      </div>
+
+      <div class="cars-layer" id="carsLayer">
+        <img id="playerCar" class="car player" alt="Voiture joueur" />
+      </div>
+
+      <section class="speed-box">SPEED : <span id="speedValue">0000</span></section>
+
+      <section class="overlay hidden" id="overlay"></section>
+
+      <section class="popup hidden" id="settingsPopup">
+        <button class="close-btn" data-close="settingsPopup" aria-label="Fermer settings">
+          <img src="./Assets/UI/Buttons/ui_btn_close_base_v01.svg" alt="Fermer" data-asset-name="ui_btn_close_base_v01.svg" />
+        </button>
+        <h2>SETTINGS</h2>
+        <p>Station radio</p>
+        <select id="radioSelect">
+          <option value="radio_happyness">Happyness FM</option>
+          <option value="radio_internationnal">International Hits</option>
+          <option value="radio_phonk">Phonk Drive</option>
+          <option value="radio_random">Random Mix</option>
+          <option value="radio_rap">Rap Street</option>
+          <option value="radio_rock">Rock Route</option>
+        </select>
+        <button id="menuBtnInSettings" class="asset-btn" aria-label="Retour menu principal">
+          <img src="./Assets/UI/Buttons/ui_btn_menu_base_v01.svg" alt="Menu" data-asset-name="ui_btn_menu_base_v01.svg" />
+        </button>
+      </section>
+
+      <section class="popup hidden" id="confirmExitPopup">
+        <img class="confirm-base" src="./Assets/UI/Pop-up/ui_popup_confirm_base_V01.svg" alt="Confirmation" data-asset-name="ui_popup_confirm_base_V01.svg" />
+        <p>Quitter la partie ?</p>
+        <div class="confirm-actions">
+          <button id="confirmYes" class="asset-btn" aria-label="Oui">
+            <img src="./Assets/UI/Buttons/ui_btn_yes_base_v01.svg" alt="Oui" data-asset-name="ui_btn_yes_base_v01.svg" />
+          </button>
+          <button id="confirmNo" class="asset-btn" aria-label="Non">
+            <img src="./Assets/UI/Buttons/ui_btn_no_base_v01.svg" alt="Non" data-asset-name="ui_btn_no_base_v01.svg" />
+          </button>
+        </div>
+      </section>
+
+      <section class="popup hidden" id="pausePopup">
+        <h2>PAUSE</h2>
+        <button id="resumeBtn" class="asset-btn" aria-label="Resume">
+          <img src="./Assets/UI/Buttons/ui_btn_resume_base_v01.svg" alt="Resume" data-asset-name="ui_btn_resume_base_v01.svg" />
+        </button>
+        <button id="menuBtnInPause" class="asset-btn" aria-label="Menu depuis pause">
+          <img src="./Assets/UI/Buttons/ui_btn_menu_base_v01.svg" alt="Menu" data-asset-name="ui_btn_menu_base_v01.svg" />
+        </button>
+      </section>
+
+      <section class="gameover hidden" id="gameOverPanel">
+        <button id="retryBtn" class="asset-btn" aria-label="Retry">
+          <img src="./Assets/UI/Buttons/ui_btn_retry_base_v01.svg" alt="Retry" data-asset-name="ui_btn_retry_base_v01.svg" />
+        </button>
+        <button id="menuBtnGameOver" class="asset-btn" aria-label="Menu">
+          <img src="./Assets/UI/Buttons/ui_btn_menu_base_v01.svg" alt="Menu" data-asset-name="ui_btn_menu_base_v01.svg" />
+        </button>
+      </section>
+    </main>
+
+    <audio id="radioPlayer"></audio>
+    <audio id="crashSound" src="./Assets/Sounds/Onroad/Effect/Sound_onroad_effect_crash_accident_sample_v01.mp3"></audio>
+    <audio id="takedownSound" src="./Assets/Sounds/Onroad/Effect/Sound_onroad_effect_crash_accident_sample_v01.mp3"></audio>
+
+    <script type="module" src="play.js"></script>
+  </body>
+</html>

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Crashtown - Garage Menu</title>
+    <link rel="stylesheet" href="garage.css" />
+  </head>
+  <body>
+    <main class="garage-app" aria-label="Garage menu">
+      <img
+        class="garage-logo"
+        src="./Assets/Branding/Logo/Brand_crashtown_logo_main_v01.svg"
+        alt="Logo Crashtown"
+        data-asset-name="Brand_crashtown_logo_main_v01.svg"
+      />
+
+      <img
+        class="garage-bg"
+        src="./Assets/UI/Screens/MainMenu/ui_garage_menu_bg_v01.svg"
+        alt="Fond garage"
+        data-asset-name="ui_garage_menu_bg_v01.svg"
+      />
+
+      <section class="garage-card" aria-label="Sélection véhicule">
+        <h1>GARAGE</h1>
+
+        <div class="car-carousel">
+          <button id="prevCar" aria-label="Voiture précédente">◀</button>
+          <div class="car-stage">
+            <img id="carImage" alt="Voiture sélectionnée" />
+            <p id="carName"></p>
+          </div>
+          <button id="nextCar" aria-label="Voiture suivante">▶</button>
+        </div>
+
+        <div class="variant-switch" aria-label="Qualité véhicule">
+          <button id="variantPrev" aria-label="Qualité précédente">▲</button>
+          <span id="variantLabel">HD</span>
+          <button id="variantNext" aria-label="Qualité suivante">▼</button>
+        </div>
+
+        <div class="color-carousel" aria-label="Couleurs débloquées">
+          <button class="color-btn active" data-color="#ffffff" aria-label="Couleur blanche"></button>
+          <button class="color-btn" data-color="#f2d037" aria-label="Couleur jaune"></button>
+          <button class="color-btn" data-color="#4ca8ff" aria-label="Couleur bleue"></button>
+          <button class="color-btn" data-color="#ff5353" aria-label="Couleur rouge"></button>
+          <button class="color-btn" data-color="#62d681" aria-label="Couleur verte"></button>
+        </div>
+
+        <button class="play-btn" id="startRaceBtn" aria-label="Lancer la course">
+          <img src="./Assets/UI/Buttons/ui_btn_play_base_v01.svg" alt="Play" data-asset-name="ui_btn_play_base_v01.svg" />
+        </button>
+      </section>
+
+      <div class="bottom-actions-row">
+        <button id="garageSettingsBtn" class="icon-btn" aria-label="Paramètres garage">
+          <img src="./Assets/UI/Buttons/ui_btn_settings_icon_v01.svg" alt="Paramètres" data-asset-name="ui_btn_settings_icon_v01.svg" />
+        </button>
+        <button id="returnMainBtn" class="icon-btn" aria-label="Retour menu principal">
+          <img src="./Assets/UI/Buttons/ui_btn_return_base_v01.svg" alt="Retour" data-asset-name="ui_btn_return_base_v01.svg" />
+        </button>
+      </div>
+
+      <div class="overlay hidden" id="overlay"></div>
+      <section class="popup hidden" id="garageSettingsPopup" aria-label="Paramètres garage">
+        <button class="close-btn" id="closeGarageSettings" aria-label="Fermer">
+          <img src="./Assets/UI/Buttons/ui_btn_close_base_v01.svg" alt="Fermer" data-asset-name="ui_btn_close_base_v01.svg" />
+        </button>
+        <h2>PARAMÈTRES GARAGE</h2>
+        <label for="garageMusicVolume">Volume musique</label>
+        <input id="garageMusicVolume" type="range" min="0" max="100" value="60" />
+        <label for="garageAutoPlayToggle" class="switch-row">
+          <input id="garageAutoPlayToggle" type="checkbox" checked />
+          <span>Lancer la radio au retour dans le garage</span>
+        </label>
+      </section>
+    </main>
+
+    <section id="navLoading" class="nav-loading" aria-label="Chargement navigation">
+      <div class="nav-loading-card">
+        <img src="public/Assets/Branding/Logo/Brand_crashtown_logo_main_v01.png" class="loading-logo" alt="Logo Crashtown">
+        <p>Chargement…</p>
+      </div>
+    </section>
+
+    <audio id="garageMusic" src="./Assets/Sounds/Garage/Music/Sound_music_garage_playsong1_sample_v01.mp3" loop></audio>
+    <audio id="carSound"></audio>
+    <audio id="selectionSound" src="./Assets/Sounds/Garage/Selection/Sound_selection_btn_sample_v01.mp3"></audio>
+
+    <script type="module" src="garage.js"></script>
+  </body>
+</html>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Calque_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 100.53 34.79">
+  <!-- Generator: Adobe Illustrator 30.0.0, SVG Export Plug-In . SVG Version: 2.1.1 Build 123)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill: #fff;
+      }
+
+      .st1 {
+        fill: #1e1e1c;
+      }
+
+      .st2 {
+        fill: #3d8140;
+      }
+    </style>
+  </defs>
+  <g id="Economy_x5F_module_x5F_emerald">
+    <g id="Economy_x5F_module_x5F_emerald_x5F_box">
+      <g id="Economy_x5F_module_x5F_emerald_x5F_box_x5F_number">
+        <rect class="st2" y="0" width="100.53" height="34.79" rx="7.82" ry="7.82"/>
+        <path class="st0" d="M92.71,4c2.11,0,3.82,1.71,3.82,3.82v19.15c0,2.11-1.71,3.82-3.82,3.82H7.82c-2.11,0-3.82-1.71-3.82-3.82V7.82c0-2.11,1.71-3.82,3.82-3.82h84.89M92.71,0H7.82C3.5,0,0,3.5,0,7.82v19.15C0,31.29,3.5,34.79,7.82,34.79h84.89c4.32,0,7.82-3.5,7.82-7.82V7.82C100.53,3.5,97.03,0,92.71,0h0Z"/>
+        <path class="st1" d="M92.71,2c3.21,0,5.82,2.61,5.82,5.82v19.15c0,3.21-2.61,5.82-5.82,5.82H7.82c-3.21,0-5.82-2.61-5.82-5.82V7.82c0-3.21,2.61-5.82,5.82-5.82h84.89M92.71,0H7.82C3.5,0,0,3.5,0,7.82v19.15C0,31.29,3.5,34.79,7.82,34.79h84.89c4.32,0,7.82-3.5,7.82-7.82V7.82c0-4.32-3.5-7.82-7.82-7.82h0Z"/>
+      </g>
+    </g>
+  </g>
+</svg>

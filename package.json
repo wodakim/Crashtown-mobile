@@ -1,0 +1,21 @@
+{
+  "name": "crashtown_game",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mirror fidèle du jeu web Crashtown (HTML/CSS/JS/Assets)",
+  "scripts": {
+    "serve": "python3 -m http.server 5173",
+    "radio:scan": "node scripts/generate-radio-playlists.mjs",
+    "vehicle:scan": "node scripts/generate-vehicle-catalog.mjs"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "vite": "^7.3.1"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.1.0",
+    "@capacitor/cli": "^8.1.0",
+    "@capacitor/core": "^8.1.0",
+    "@capacitor/ios": "^8.1.0"
+  }
+}

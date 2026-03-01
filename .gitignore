@@ -1,0 +1,22 @@
+# Dépendances (à ne jamais push !)
+node_modules/
+
+# Dossier de build (généré automatiquement)
+dist/
+
+# Fichiers Audio / Binaires (Ignorés pour le Vibes Coding)
+*.mp3
+*.wav
+*.ogg
+*.flac
+*.m4a
+
+# Si tu as d'autres binaires (vidéos, polices lourdes) :
+*.mp4
+*.ttf
+*.woff2
+
+# Dossiers natifs Capacitor (Optionnel)
+# Si tu ne veux pas push les dossiers Android/iOS entiers, décommente ces lignes :
+# android/
+# ios/
