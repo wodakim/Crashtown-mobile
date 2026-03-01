@@ -6,7 +6,12 @@
   "scripts": {
     "serve": "python3 -m http.server 5173",
     "radio:scan": "node scripts/generate-radio-playlists.mjs",
-    "vehicle:scan": "node scripts/generate-vehicle-catalog.mjs"
+    "radio:scan:strict": "node scripts/generate-radio-playlists.mjs --strict",
+    "radio:scan:strict:full": "node scripts/generate-radio-playlists.mjs --strict --fail-on-empty",
+    "vehicle:scan": "node scripts/generate-vehicle-catalog.mjs",
+    "vehicle:scan:strict": "node scripts/generate-vehicle-catalog.mjs --strict",
+    "assets:validate": "npm run vehicle:scan:strict && npm run radio:scan:strict",
+    "assets:validate:full": "npm run vehicle:scan:strict && npm run radio:scan:strict:full"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",

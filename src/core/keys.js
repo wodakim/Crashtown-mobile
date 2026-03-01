@@ -1,0 +1,16 @@
+export const STORAGE_KEYS = {
+  introSeenSession: "ct_intro_seen_session_v1",
+  playerProfile: "ct_player_profile_v1",
+  walletCredits: "ct_wallet_credits_v1",
+  walletEmeralds: "ct_wallet_emerald_v1",
+  dailyRewardLastClaim: "ct_daily_reward_last_claim_v1",
+  dailyMissions: "ct_daily_missions_v1",
+  weeklyMissions: "ct_weekly_missions_v1",
+  selectedVehicle: "selectedVehicle",
+  selectedVehicleQuality: "selectedVehicleQuality",
+  selectedVehicleColor: "selectedVehicleColor",
+  garageSettings: "ct_garage_settings_v1",
+  radioStation: "ct_radio_station_v1",
+  radioRepeat: "ct_radio_repeat_v1",
+  runDifficulty: "ct_run_difficulty_v1",
+};

@@ -405,3 +405,77 @@ body {
   0%, 100% { background: rgba(0, 0, 0, 0.55); }
   50% { background: rgba(0, 0, 0, 0.72); }
 }
+
+.difficulty-popup {
+  top: 18%;
+  width: 90%;
+  max-height: 76vh;
+  overflow-y: auto;
+}
+
+.difficulty-subtitle {
+  font-size: 0.8rem;
+  opacity: 0.9;
+  margin-bottom: 6px;
+}
+
+.difficulty-cards {
+  display: grid;
+  gap: 10px;
+}
+
+.difficulty-card {
+  border: 2px solid #284258;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(40,56,70,0.95), rgba(24,34,44,0.95));
+  color: #fff;
+  text-align: left;
+  padding: 10px 10px;
+  display: grid;
+  gap: 4px;
+  cursor: pointer;
+  transform: scale(0.98);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.difficulty-card strong {
+  letter-spacing: 0.4px;
+}
+
+.difficulty-card span {
+  font-size: 0.72rem;
+  opacity: 0.95;
+}
+
+.difficulty-card em {
+  font-size: 0.72rem;
+  color: #ffda6a;
+  font-style: normal;
+}
+
+.difficulty-card:hover,
+.difficulty-card:focus-visible {
+  transform: scale(1);
+  border-color: #58c2ff;
+  box-shadow: 0 0 0 2px rgba(88, 194, 255, 0.25);
+}
+
+.difficulty-card:active {
+  transform: scale(0.97);
+}
+
+.difficulty-card.diff-easy { border-left: 5px solid #5fd587; }
+.difficulty-card.diff-normal { border-left: 5px solid #f6d15d; }
+.difficulty-card.diff-hard { border-left: 5px solid #ff6d6d; }
+
+.difficulty-popup.show-cards .difficulty-card {
+  animation: difficulty-card-in 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.difficulty-popup.show-cards .difficulty-card:nth-child(2) { animation-delay: 60ms; }
+.difficulty-popup.show-cards .difficulty-card:nth-child(3) { animation-delay: 120ms; }
+
+@keyframes difficulty-card-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}

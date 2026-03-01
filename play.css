@@ -367,6 +367,30 @@ body {
   background: rgba(0, 0, 0, 0.5);
 }
 
+.gameover-summary {
+  background: rgba(8, 20, 30, 0.86);
+  border: 2px solid #63c5ff;
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 0.78rem;
+  letter-spacing: 0.6px;
+  padding: 8px 10px;
+  text-align: center;
+  max-width: 85%;
+}
+
+.gameover-mission-summary {
+  background: rgba(16, 24, 32, 0.82);
+  border: 1px solid #4ea6da;
+  border-radius: 8px;
+  color: #d7f2ff;
+  font-size: 0.68rem;
+  letter-spacing: 0.4px;
+  padding: 6px 8px;
+  text-align: center;
+  max-width: 85%;
+}
+
 .feedback-layer {
   position: absolute;
   inset: 0;

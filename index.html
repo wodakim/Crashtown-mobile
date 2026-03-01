@@ -168,13 +168,18 @@
         </button>
         <h2>QUÊTES JOURNALIÈRES</h2>
         <div class="quest-list">
-          <div class="quest-row"><span>Terminer 1 run</span><span>+300 crédits</span></div>
-          <div class="quest-row"><span>Faire 3 near-miss</span><span>+500 crédits</span></div>
-          <div class="quest-row"><span>Réaliser 1 takedown</span><span>+700 crédits</span></div>
-          <div class="quest-row quest-row-final"><span>Complétion totale</span><span>+5 emerald</span></div>
+          <div class="quest-row"><span>Terminer 1 run</span><span id="dailyQuestProgressRun">0/1 · +300 crédits</span></div>
+          <div class="quest-row"><span>Faire 3 near-miss</span><span id="dailyQuestProgressNearMiss">0/3 · +500 crédits</span></div>
+          <div class="quest-row"><span>Réaliser 1 takedown</span><span id="dailyQuestProgressTakedown">0/1 · +700 crédits</span></div>
+          <div class="quest-row quest-row-final"><span>Complétion totale</span><span id="dailyQuestProgressFinal">En cours · +5 emerald</span></div>
+        </div>
+
+        <h3 class="quest-subtitle">OBJECTIFS HEBDO</h3>
+        <div class="quest-list">
+          <div class="quest-row"><span>Terminer 10 runs</span><span id="weeklyQuestProgressRuns">0/10 · +2000 crédits</span></div>
+          <div class="quest-row"><span>Faire 10 near-miss</span><span id="weeklyQuestProgressNearMiss">0/10 · +1500 crédits</span></div>
         </div>
       </section>
-
       <section class="popup hidden" id="shopPopup" aria-label="Boutique voitures">
         <button class="close-btn" data-close-popup="shopPopup" aria-label="Fermer boutique">
           <img src="/Assets/UI/Buttons/ui_btn_close_base_v01.svg" alt="Fermer" data-asset-name="ui_btn_close_base_v01.svg" />

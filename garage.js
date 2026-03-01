@@ -2,10 +2,12 @@ import { initPagePerf, markNavigationStart, reportNavigationArrival, runExitTran
 import { navigateWithPreload as sharedNavigateWithPreload, preloadAsset } from "./src/core/navigation.js";
 import { VEHICLE_CATALOG as vehicles, VEHICLE_QUALITY_ORDER as qualityOrder, getVehicleVariant } from "./src/data/vehicles.js";
 import { isVehicleColorOwned, isVehicleOwned } from "./src/data/vehicleOwnership.js";
+import { STORAGE_KEYS } from "./src/core/keys.js";
+import { getRunDifficulty } from "./src/data/difficulties.js";
 
-let currentQuality = localStorage.getItem("selectedVehicleQuality") || "hd";
+let currentQuality = localStorage.getItem(STORAGE_KEYS.selectedVehicleQuality) || "hd";
 let currentIndex = 0;
-let selectedColor = localStorage.getItem("selectedVehicleColor") || "white";
+let selectedColor = localStorage.getItem(STORAGE_KEYS.selectedVehicleColor) || "white";
 
 const carImage = document.getElementById("carImage");
 const carName = document.getElementById("carName");
@@ -15,6 +17,7 @@ const carSound = document.getElementById("carSound");
 const selectionSound = document.getElementById("selectionSound");
 const overlay = document.getElementById("overlay");
 const garageSettingsPopup = document.getElementById("garageSettingsPopup");
+const difficultyPopup = document.getElementById("difficultyPopup");
 const garageMusicVolume = document.getElementById("garageMusicVolume");
 const garageAutoPlayToggle = document.getElementById("garageAutoPlayToggle");
 const navLoading = document.getElementById("navLoading");
@@ -22,7 +25,7 @@ const colorButtons = Array.from(document.querySelectorAll(".color-btn"));
 const carStage = document.querySelector(".car-stage");
 const startRaceBtn = document.getElementById("startRaceBtn");
 let garageMusicWanted = true;
-const GARAGE_SETTINGS_KEY = "ct_garage_settings_v1";
+const GARAGE_SETTINGS_KEY = STORAGE_KEYS.garageSettings;
 
 const PAGE_NAME = "garage.html";
 initPagePerf(PAGE_NAME);
@@ -56,7 +59,7 @@ function applyGarageSettings() {
 }
 
 function findInitialVehicle() {
-  const selected = localStorage.getItem("selectedVehicle") || "RX7";
+  const selected = localStorage.getItem(STORAGE_KEYS.selectedVehicle) || "RX7";
   const fallback = vehicles.find((vehicle) => isVehicleOwned(vehicle.id)) || vehicles[0];
   const resolvedId = isVehicleOwned(selected) ? selected : fallback.id;
   const index = vehicles.findIndex((vehicle) => vehicle.id === resolvedId || vehicle.name === resolvedId);
@@ -78,9 +81,9 @@ function animateGarageCarSwap() {
 function saveSelectedVehicle() {
   const vehicle = selectedVehicle();
   if (!isVehicleOwned(vehicle.id) || !isVehicleColorOwned(vehicle.id, selectedColor)) return;
-  localStorage.setItem("selectedVehicle", vehicle.id);
-  localStorage.setItem("selectedVehicleQuality", currentQuality);
-  localStorage.setItem("selectedVehicleColor", selectedColor);
+  localStorage.setItem(STORAGE_KEYS.selectedVehicle, vehicle.id);
+  localStorage.setItem(STORAGE_KEYS.selectedVehicleQuality, currentQuality);
+  localStorage.setItem(STORAGE_KEYS.selectedVehicleColor, selectedColor);
 }
 
 function renderColorButtons(vehicle) {
@@ -216,7 +219,7 @@ function cycleVariant(direction) {
   const idx = qualityOrder.indexOf(currentQuality);
   const next = (idx + direction + qualityOrder.length) % qualityOrder.length;
   currentQuality = qualityOrder[next];
-  localStorage.setItem("selectedVehicleQuality", currentQuality);
+  localStorage.setItem(STORAGE_KEYS.selectedVehicleQuality, currentQuality);
   renderVehicle();
 }
 
@@ -242,6 +245,41 @@ colorButtons.forEach((btn) => {
   });
 });
 
+
+function closeDifficultyPopup() {
+  difficultyPopup?.classList.add("hidden");
+  difficultyPopup?.classList.remove("show-cards");
+  overlay.classList.add("hidden");
+}
+
+function openDifficultyPopup() {
+  overlay.classList.remove("hidden");
+  difficultyPopup?.classList.remove("hidden");
+  difficultyPopup?.classList.remove("show-cards");
+  requestAnimationFrame(() => difficultyPopup?.classList.add("show-cards"));
+}
+
+async function launchRunWithDifficulty(difficultyId) {
+  const selectedDifficulty = getRunDifficulty(difficultyId).id;
+  localStorage.setItem(STORAGE_KEYS.runDifficulty, selectedDifficulty);
+
+  saveSelectedVehicle();
+  const vehicle = selectedVehicle();
+  const qualityImage = getVehicleVariant(vehicle.id, currentQuality, selectedColor);
+  const selectedStation = localStorage.getItem(STORAGE_KEYS.radioStation) || "radio_random";
+  const stationPreviewTrack = `/Assets/Sounds/Onroad/radio/${selectedStation}/Sound_music_onroad_playsong1_sample_v01.mp3`;
+
+  await navigateWithPreload("play.html", [
+    qualityImage,
+    "./Assets/Road/Road_street_baseloop_v01.png",
+    "/Assets/Road/obstacles/Obstacles_decor_base_v01.svg",
+    "/Assets/Road/Obstacles/Obstacles_decor_base_v01.svg",
+    "./Assets/Road/obstacles/Obstacles_decor_base_v01.svg",
+    "./Assets/Road/Obstacles/Obstacles_decor_base_v01.svg",
+    stationPreviewTrack,
+  ]);
+}
+
 document.getElementById("startRaceBtn").addEventListener("click", async () => {
   const vehicle = selectedVehicle();
   if (!isVehicleOwned(vehicle.id) || !isVehicleColorOwned(vehicle.id, selectedColor)) return;
@@ -252,20 +290,7 @@ document.getElementById("startRaceBtn").addEventListener("click", async () => {
     // no-op
   }
 
-  saveSelectedVehicle();
-  const qualityImage = getVehicleVariant(vehicle.id, currentQuality, selectedColor);
-  const selectedStation = localStorage.getItem("ct_radio_station_v1") || "radio_random";
-  const stationPreviewTrack = `/Assets/Sounds/Onroad/radio/${selectedStation}/Sound_music_onroad_playsong1_sample_v01.mp3`;
-
-  navigateWithPreload("play.html", [
-    qualityImage,
-    "./Assets/Road/Road_street_baseloop_v01.png",
-    "/Assets/Road/obstacles/Obstacles_decor_base_v01.svg",
-    "/Assets/Road/Obstacles/Obstacles_decor_base_v01.svg",
-    "./Assets/Road/obstacles/Obstacles_decor_base_v01.svg",
-    "./Assets/Road/Obstacles/Obstacles_decor_base_v01.svg",
-    stationPreviewTrack,
-  ]);
+  openDifficultyPopup();
 });
 
 document.getElementById("garageSettingsBtn").addEventListener("click", () => {
@@ -283,7 +308,22 @@ document.getElementById("returnMainBtn").addEventListener("click", () => {
 });
 
 document.getElementById("closeGarageSettings").addEventListener("click", closeGarageSettings);
-overlay.addEventListener("click", closeGarageSettings);
+
+document.querySelectorAll(".difficulty-card").forEach((btn) => {
+  btn.addEventListener("click", async () => {
+    const difficultyId = btn.getAttribute("data-difficulty") || "normal";
+    closeDifficultyPopup();
+    await launchRunWithDifficulty(difficultyId);
+  });
+});
+
+overlay.addEventListener("click", () => {
+  if (!garageSettingsPopup.classList.contains("hidden")) {
+    closeGarageSettings();
+    return;
+  }
+  if (!difficultyPopup?.classList.contains("hidden")) closeDifficultyPopup();
+});
 
 garageMusicVolume?.addEventListener("input", () => {
   const current = getGarageSettings();

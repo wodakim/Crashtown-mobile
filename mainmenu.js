@@ -3,6 +3,9 @@ import { navigateWithPreload as sharedNavigateWithPreload, preloadAsset } from "
 import { RADIO_STATION_PREF_KEY, RADIO_STATIONS, isKnownStation } from "./src/data/radioStations.js";
 import { COLOR_TOKEN_ORDER, VEHICLE_CATALOG, getVehicleCard, listVehiclesForQuality } from "./src/data/vehicles.js";
 import { isVehicleColorOwned, isVehicleOwned, unlockVehicle, unlockVehicleColor } from "./src/data/vehicleOwnership.js";
+import { STORAGE_KEYS } from "./src/core/keys.js";
+import { claimDailyRewards, claimWeeklyRewards, getProgressState } from "./src/game/state/progression.js";
+import { trackEvent } from "./src/core/telemetry.js";
 const overlay = document.getElementById("overlay");
 const popups = {
   settingsPopup: document.getElementById("settingsPopup"),
@@ -38,7 +41,7 @@ const cars = {
 };
 
 const INTRO_VIDEO_SRC = "/Assets/Video/Intro.mp4";
-const INTRO_SEEN_SESSION_KEY = "ct_intro_seen_session_v1";
+const INTRO_SEEN_SESSION_KEY = STORAGE_KEYS.introSeenSession;
 const preloadAssets = [
   "/Assets/Road/Background_mainmenu_nature_base_v01.png",
   "/Assets/UI/Decor/tree_complete.svg",
@@ -62,10 +65,10 @@ const preloadAssets = [
   INTRO_VIDEO_SRC,
 ];
 
-let selectedQuality = localStorage.getItem("selectedVehicleQuality") || "hd";
+let selectedQuality = localStorage.getItem(STORAGE_KEYS.selectedVehicleQuality) || "hd";
 let carIndex = 0;
 const variantOrder = ["hd", "pixel"];
-let selectedShopColor = localStorage.getItem("selectedVehicleColor") || "white";
+let selectedShopColor = localStorage.getItem(STORAGE_KEYS.selectedVehicleColor) || "white";
 const shopVariantLabel = document.getElementById("shopVariantLabel");
 const shopColorSelect = document.getElementById("shopColorSelect");
 const shopCarPrice = document.getElementById("shopCarPrice");
@@ -81,32 +84,15 @@ const walletEmeraldValue = document.getElementById("walletEmeraldValue");
 const dailyQuestIcon = document.getElementById("dailyQuestIcon");
 const menuMessageBox = document.getElementById("menuMessageBox");
 
-const PLAYER_PROFILE_KEY = "ct_player_profile_v1";
-const PLAYER_WALLET_KEY = "ct_wallet_credits_v1";
-const DAILY_REWARD_KEY = "ct_daily_reward_last_claim_v1";
-const PLAYER_EMERALD_KEY = "ct_wallet_emerald_v1";
+const PLAYER_PROFILE_KEY = STORAGE_KEYS.playerProfile;
+const PLAYER_WALLET_KEY = STORAGE_KEYS.walletCredits;
+const PLAYER_EMERALD_KEY = STORAGE_KEYS.walletEmeralds;
 const MENU_BROADCAST_TEXT = "V0.03, mise à jour du menu principal, avec un petit décor animé en background et une nouvelle voiture jouable (merci à vous mes bro <3) ! Prochainement: boutique, classement, et plus encore...";
 
 const PAGE_NAME = "index.html";
 initPagePerf(PAGE_NAME);
 reportNavigationArrival(PAGE_NAME);
 
-
-function getPlayerProfile() {
-  const fallback = { nickname: "CrashPilot", level: 1, rank: "Rookie" };
-  try {
-    const raw = localStorage.getItem(PLAYER_PROFILE_KEY);
-    if (!raw) return fallback;
-    const parsed = JSON.parse(raw);
-    return {
-      nickname: String(parsed.nickname || fallback.nickname).slice(0, 20),
-      level: Number(parsed.level) > 0 ? Number(parsed.level) : fallback.level,
-      rank: parsed.rank || fallback.rank,
-    };
-  } catch {
-    return fallback;
-  }
-}
 
 function savePlayerProfile(profile) {
   localStorage.setItem(PLAYER_PROFILE_KEY, JSON.stringify(profile));
@@ -127,10 +113,11 @@ function getWalletEmeralds() {
 }
 
 function renderProfile() {
-  const profile = getPlayerProfile();
+  const state = getProgressState();
+  const profile = state.profile;
   if (profileNicknameInput) profileNicknameInput.value = profile.nickname;
-  if (profileLevel) profileLevel.textContent = `Niveau: ${profile.level}`;
-  if (profileRank) profileRank.textContent = `Classement: ${profile.rank}`;
+  if (profileLevel) profileLevel.textContent = `Niveau: ${profile.level} · XP: ${profile.xp}/${500 + (profile.level - 1) * 120}`;
+  if (profileRank) profileRank.textContent = `Classement: ${profile.rank} · Runs: ${profile.totalRuns}`;
 }
 
 
@@ -173,7 +160,7 @@ function renderWallet() {
 }
 
 function saveProfileFromForm() {
-  const base = getPlayerProfile();
+  const base = getProgressState().profile;
   const nextNickname = (profileNicknameInput?.value || "").trim();
   const profile = {
     ...base,
@@ -184,24 +171,78 @@ function saveProfileFromForm() {
   showFxNotice("Profil sauvegardé");
 }
 
-function claimDailyRewardIfAvailable() {
-  const now = Date.now();
-  const last = Number(localStorage.getItem(DAILY_REWARD_KEY) || 0);
-  const oneDay = 24 * 60 * 60 * 1000;
-  if (now - last < oneDay) return false;
+function renderDailyQuestProgress() {
+  const { daily, dailyDefs, weekly, weeklyDefs } = getProgressState();
+  const rows = [
+    ["run_1", "dailyQuestProgressRun"],
+    ["near_miss_3", "dailyQuestProgressNearMiss"],
+    ["takedown_1", "dailyQuestProgressTakedown"],
+  ];
 
-  const gain = 50;
-  const credits = getWalletCredits() + gain;
-  localStorage.setItem(PLAYER_WALLET_KEY, String(credits));
-  localStorage.setItem(DAILY_REWARD_KEY, String(now));
+  rows.forEach(([id, elId]) => {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    const def = dailyDefs[id];
+    const progress = Math.min(def.target, Number(daily.progress[id] || 0));
+    const status = daily.claimed[id] ? "✅ Réclamée" : `${progress}/${def.target}`;
+    el.textContent = `${status} · +${def.rewardCredits} crédits`;
+  });
+
+  const weeklyRows = [
+    ["runs_10", "weeklyQuestProgressRuns"],
+    ["near_miss_10", "weeklyQuestProgressNearMiss"],
+  ];
+
+  weeklyRows.forEach(([id, elId]) => {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    const def = weeklyDefs[id];
+    const progress = Math.min(def.target, Number(weekly.progress[id] || 0));
+    const claimed = weekly.claimed[id] ? " ✅" : "";
+    el.textContent = `${progress}/${def.target} · +${def.rewardCredits} crédits${claimed}`;
+  });
+
+  const final = document.getElementById("dailyQuestProgressFinal");
+  if (final) {
+    const allDone = Object.keys(dailyDefs).every((id) => Number(daily.progress[id] || 0) >= dailyDefs[id].target);
+    final.textContent = daily.bonusClaimed ? "✅ Réclamée · +5 emerald" : allDone ? "Prêt à réclamer · +5 emerald" : "En cours · +5 emerald";
+  }
+}
+
+function claimDailyRewardIfAvailable() {
+  const dailyResult = claimDailyRewards();
+  const weeklyResult = claimWeeklyRewards();
+
   renderWallet();
+  renderDailyQuestProgress();
+  renderProfile();
+
+  const gainedSomething =
+    dailyResult.gainCredits > 0 ||
+    dailyResult.gainEmeralds > 0 ||
+    weeklyResult.gainCredits > 0;
+
+  if (!gainedSomething) return false;
+
   if (dailyQuestIcon) {
     dailyQuestIcon.classList.remove("claimed-burst");
     void dailyQuestIcon.offsetWidth;
     dailyQuestIcon.classList.add("claimed-burst");
     window.setTimeout(() => dailyQuestIcon.classList.remove("claimed-burst"), 450);
   }
-  showFxNotice(`Daily +${gain} crédits`);
+
+  const parts = [];
+  if (dailyResult.gainCredits > 0) parts.push(`Daily +${dailyResult.gainCredits} crédits`);
+  if (dailyResult.gainEmeralds > 0) parts.push(`Daily +${dailyResult.gainEmeralds} emerald`);
+  if (weeklyResult.gainCredits > 0) parts.push(`Weekly +${weeklyResult.gainCredits} crédits`);
+
+  trackEvent("mission_claim", {
+    dailyCredits: dailyResult.gainCredits,
+    dailyEmeralds: dailyResult.gainEmeralds,
+    weeklyCredits: weeklyResult.gainCredits,
+  });
+
+  showFxNotice(`Quêtes: ${parts.join(" · ")}`);
   return true;
 }
 
@@ -292,9 +333,9 @@ function equipCurrentFromShop() {
     return;
   }
 
-  localStorage.setItem("selectedVehicle", vehicleId);
-  localStorage.setItem("selectedVehicleQuality", selectedQuality);
-  localStorage.setItem("selectedVehicleColor", colorToken);
+  localStorage.setItem(STORAGE_KEYS.selectedVehicle, vehicleId);
+  localStorage.setItem(STORAGE_KEYS.selectedVehicleQuality, selectedQuality);
+  localStorage.setItem(STORAGE_KEYS.selectedVehicleColor, colorToken);
   showFxNotice(`${vehicleId} équipé (${selectedQuality.toUpperCase()} · ${card.color?.label || "Blanc"})`);
   pulseShopCard("shop-card-success");
 }
@@ -389,7 +430,7 @@ function cycleShopVariant(direction) {
   const idx = variantOrder.indexOf(selectedQuality);
   const next = (idx + direction + variantOrder.length) % variantOrder.length;
   selectedQuality = variantOrder[next];
-  localStorage.setItem("selectedVehicleQuality", selectedQuality);
+  localStorage.setItem(STORAGE_KEYS.selectedVehicleQuality, selectedQuality);
 
   qualityButtons.forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.quality === selectedQuality);
@@ -795,7 +836,7 @@ qualityButtons.forEach((button) => {
     qualityButtons.forEach((btn) => btn.classList.remove("active"));
     button.classList.add("active");
     selectedQuality = button.dataset.quality;
-    localStorage.setItem("selectedVehicleQuality", selectedQuality);
+    localStorage.setItem(STORAGE_KEYS.selectedVehicleQuality, selectedQuality);
     carIndex = 0;
     renderCar();
   });
@@ -826,7 +867,7 @@ document.getElementById("saveProfileBtn")?.addEventListener("click", saveProfile
 equipFromShopBtn?.addEventListener("click", equipCurrentFromShop);
 shopColorSelect?.addEventListener("change", () => {
   selectedShopColor = shopColorSelect.value || "white";
-  localStorage.setItem("selectedVehicleColor", selectedShopColor);
+  localStorage.setItem(STORAGE_KEYS.selectedVehicleColor, selectedShopColor);
   renderCar();
 });
 
@@ -836,6 +877,7 @@ populateShopColors();
 renderCar();
 renderProfile();
 renderWallet();
+renderDailyQuestProgress();
 syncRadioStationControl();
 renderMenuBroadcast();
 runBootSequence();
