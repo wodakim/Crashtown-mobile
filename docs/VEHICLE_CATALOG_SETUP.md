@@ -70,3 +70,10 @@ shop: {
 
 - Au premier lancement, seule `RX7` en `white` est débloquée gratuitement.
 - Toutes les autres voitures/couleurs doivent être achetées dans la boutique avant sélection dans le garage.
+
+
+## Validation stricte (recommandée CI/build)
+
+- `npm run vehicle:scan:strict`
+
+Ce mode échoue (`exit 1`) si des anomalies sont détectées (ex: `.png.png`, qualité HD/Pixel manquante, nom non conforme).

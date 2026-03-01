@@ -6,6 +6,9 @@ import { gameplayConfig } from "./src/data/gameplay.js";
 import { RADIO_STATION_PREF_KEY, buildStationTracks, isKnownStation } from "./src/data/radioStations.js";
 import { VEHICLE_CATALOG, getVehicleVariant } from "./src/data/vehicles.js";
 import { safePlay, stopAndReset } from "./src/core/audio.js";
+import { STORAGE_KEYS } from "./src/core/keys.js";
+import { applyRunSummary } from "./src/game/state/progression.js";
+import { getRunDifficulty } from "./src/data/difficulties.js";
 const lanes = gameplayConfig.lanes;
 const ENEMY_SPAWN_INTERVAL_MS = gameplayConfig.enemySpawnIntervalMs;
 const MAX_ENEMIES = gameplayConfig.maxEnemies;
@@ -33,7 +36,8 @@ const BASE_DIFFICULTY_SCORE_STEP = gameplayConfig.race.baseDifficultyScoreStep;
 const MIN_SPAWN_PROGRESS_GAP = gameplayConfig.race.minSpawnProgressGap;
 const MAX_RECENT_EVENTS = gameplayConfig.race.maxRecentEvents;
 const DEV_HITBOX_QUERY = new URLSearchParams(window.location.search).get("devHitbox") === "1";
-const PLAYER_WALLET_KEY = "wallet_credits_v1";
+const PLAYER_WALLET_KEY = STORAGE_KEYS.walletCredits;
+const LEGACY_PLAYER_WALLET_KEY = "wallet_credits_v1";
 const GIFT_REWARD_CREDITS = gameplayConfig.gift.rewardCredits;
 const GIFT_SPAWN_MIN_MS = gameplayConfig.gift.spawnMinMs;
 const GIFT_SPAWN_MAX_MS = gameplayConfig.gift.spawnMaxMs;
@@ -46,7 +50,7 @@ const RUN_EVENT_DENSE_TRAFFIC_SPAWN_MULT = gameplayConfig.runEvents.denseTraffic
 const RUN_EVENT_DENSE_TRAFFIC_MAX_BONUS = gameplayConfig.runEvents.denseTrafficMaxEnemiesBonus;
 const RUN_EVENT_NIGHT_CRUISE_MULT = gameplayConfig.runEvents.nightCruiseMultiplier;
 const RUN_EVENT_NIGHT_SPEED_CAP = gameplayConfig.runEvents.nightSpeedCap;
-const RADIO_REPEAT_PREF_KEY = "ct_radio_repeat_v1";
+const RADIO_REPEAT_PREF_KEY = STORAGE_KEYS.radioRepeat;
 const OBSTACLE_ASSET_CANDIDATES = [
   "/Assets/Road/obstacles/Obstacles_decor_base_v01.svg",
   "/Assets/Road/Obstacles/Obstacles_decor_base_v01.svg",
@@ -71,6 +75,8 @@ const settingsPopup = document.getElementById("settingsPopup");
 const confirmExitPopup = document.getElementById("confirmExitPopup");
 const pausePopup = document.getElementById("pausePopup");
 const gameOverPanel = document.getElementById("gameOverPanel");
+const gameOverSummary = document.getElementById("gameOverSummary");
+const gameOverMissionSummary = document.getElementById("gameOverMissionSummary");
 const closeSettingsBtn = document.querySelector('[data-close="settingsPopup"]');
 const menuBtnInSettings = document.getElementById("menuBtnInSettings");
 const confirmYes = document.getElementById("confirmYes");
@@ -136,6 +142,7 @@ const state = {
   takedowns: 0,
   overtakes: 0,
   collisions: 0,
+  nearMisses: 0,
   currentModal: null,
   shieldUntil: 0,
   eventLog: [],
@@ -173,6 +180,9 @@ const state = {
   radioEmptyWarnedStation: null,
 };
 
+const selectedDifficultyId = localStorage.getItem(STORAGE_KEYS.runDifficulty) || "normal";
+const selectedDifficulty = getRunDifficulty(selectedDifficultyId);
+
 const feedbackLayer = document.createElement("div");
 feedbackLayer.className = "feedback-layer";
 playApp?.appendChild(feedbackLayer);
@@ -186,9 +196,9 @@ playerShadow.className = "car-shadow player-shadow";
 carsLayer?.appendChild(playerShadow);
 
 function selectedVehicleSrc() {
-  const selected = localStorage.getItem("selectedVehicle") || "RX7";
-  const quality = localStorage.getItem("selectedVehicleQuality") || "hd";
-  const color = localStorage.getItem("selectedVehicleColor") || "white";
+  const selected = localStorage.getItem(STORAGE_KEYS.selectedVehicle) || "RX7";
+  const quality = localStorage.getItem(STORAGE_KEYS.selectedVehicleQuality) || "hd";
+  const color = localStorage.getItem(STORAGE_KEYS.selectedVehicleColor) || "white";
   return getVehicleVariant(selected, quality, color) || vehicleAssets.RX7?.hd || vehicleAssets.PORSHE?.hd;
 }
 
@@ -314,7 +324,7 @@ async function prepareRadioStation(stationId, { forceReload = false } = {}) {
 
 function migrateLegacyStorageKeys() {
   try {
-    const legacyWallet = Number(localStorage.getItem("ct_wallet_credits_v1"));
+    const legacyWallet = Number(localStorage.getItem(LEGACY_PLAYER_WALLET_KEY));
     if (Number.isFinite(legacyWallet) && legacyWallet >= 0 && !Number.isFinite(readNumber(PLAYER_WALLET_KEY, Number.NaN))) {
       writeNumber(PLAYER_WALLET_KEY, Math.floor(legacyWallet));
     }
@@ -471,6 +481,7 @@ function checkNearMiss(enemy) {
   const nearMissPoints = 220;
   award(nearMissPoints);
   trackEvent("near_miss", { lane: enemy.lane, lateralDistance: Number(lateralDistance.toFixed(3)), score: state.score });
+  state.nearMisses += 1;
   registerComboAction("near_miss", nearMissPoints, "NEAR MISS +220", "overtake");
 }
 
@@ -671,6 +682,46 @@ function endGame() {
   state.running = false;
   state.collisions += 1;
   breakCombo("collision");
+
+  const progression = applyRunSummary({
+    score: state.score,
+    takedowns: state.takedowns,
+    nearMisses: state.nearMisses,
+    xpMultiplier: selectedDifficulty.xpMultiplier || 1,
+  });
+
+  trackEvent("run_summary", {
+    score: state.score,
+    takedowns: state.takedowns,
+    nearMisses: state.nearMisses,
+    xpGain: progression.xpGain,
+    level: progression.profile.level,
+    leveledUp: progression.leveledUp,
+    difficulty: selectedDifficulty.id,
+  });
+
+  trackEvent("mission_progress", {
+    dailyProgress: progression.daily?.progress || {},
+    weeklyProgress: progression.weekly?.progress || {},
+    dailyCompleted: progression.dailyStatus?.completed || 0,
+    weeklyCompleted: progression.weeklyStatus?.completed || 0,
+  });
+
+  if (gameOverSummary) {
+    const xpNeeded = 500 + (progression.profile.level - 1) * 120;
+    gameOverSummary.textContent = `RUN +${progression.xpGain} XP · NIVEAU ${progression.profile.level} (${Math.floor(progression.profile.xp)}/${xpNeeded})`;
+  }
+
+  if (gameOverMissionSummary) {
+    const d = progression.dailyStatus || { completed: 0, total: 0, claimable: 0 };
+    const w = progression.weeklyStatus || { completed: 0, total: 0, claimable: 0 };
+    gameOverMissionSummary.textContent = `Missions: Daily ${d.completed}/${d.total} (${d.claimable} à réclamer) · Weekly ${w.completed}/${w.total} (${w.claimable} à réclamer)`;
+  }
+
+  if (progression.leveledUp > 0) {
+    addFloatingFeedback(`LEVEL UP x${progression.leveledUp}`, "takedown");
+  }
+
   trackEvent("collision", { score: state.score, lane: state.lane });
   pushEvent("collision", { lane: state.lane, score: state.score });
   gameOverPanel.classList.remove("hidden");
@@ -750,9 +801,20 @@ function updateEnemy(enemy, dt, now) {
 
   enemy.laneShiftClock -= dt;
   if (enemy.laneShiftClock <= 0) {
-    enemy.laneShiftClock = 0.6 + Math.random() * 1.6;
-    const laneChoices = [enemy.lane - 1, enemy.lane, enemy.lane + 1].filter((lane) => lane >= 0 && lane < lanes.length);
-    enemy.targetLane = laneChoices[Math.floor(Math.random() * laneChoices.length)];
+    const laneMode = selectedDifficulty.laneChangeMode || "normal";
+    const nextClock = laneMode === "rare" ? (1.4 + Math.random() * 2.8) : (0.6 + Math.random() * 1.6);
+    enemy.laneShiftClock = nextClock;
+
+    if (laneMode === "none") {
+      enemy.targetLane = enemy.lane;
+    } else {
+      const laneChoices = [enemy.lane - 1, enemy.lane, enemy.lane + 1].filter((lane) => lane >= 0 && lane < lanes.length);
+      if (laneMode === "rare" && Math.random() < 0.72) {
+        enemy.targetLane = enemy.lane;
+      } else {
+        enemy.targetLane = laneChoices[Math.floor(Math.random() * laneChoices.length)];
+      }
+    }
   }
 
   if (enemy.targetLane !== enemy.lane) {
@@ -1062,16 +1124,22 @@ function spawnTick() {
   const level = difficultyLevel();
   const denseTrafficActive = state.runEvent.type === "dense_traffic";
   const spawnIntervalBase = Math.max(520, ENEMY_SPAWN_INTERVAL_MS - level * 90);
-  const spawnInterval = denseTrafficActive
+  const difficultySpawnMult = selectedDifficulty.trafficSpawnMult || 1;
+  const spawnIntervalRaw = denseTrafficActive
     ? Math.max(380, spawnIntervalBase * RUN_EVENT_DENSE_TRAFFIC_SPAWN_MULT)
     : spawnIntervalBase;
-  const maxEnemiesBase = Math.min(9, MAX_ENEMIES + Math.floor(level / 2));
-  const maxEnemies = denseTrafficActive ? maxEnemiesBase + RUN_EVENT_DENSE_TRAFFIC_MAX_BONUS : maxEnemiesBase;
+  const spawnInterval = Math.max(360, spawnIntervalRaw * difficultySpawnMult);
 
-  state.obstacleSpawnClock += performance.now() - state.lastFrame;
-  if (state.obstacleSpawnClock >= OBSTACLE_SPAWN_INTERVAL_MS) {
-    state.obstacleSpawnClock = 0;
-    spawnObstacle();
+  const maxEnemiesBase = Math.min(9, MAX_ENEMIES + Math.floor(level / 2));
+  const maxEnemiesAdjusted = Math.max(2, maxEnemiesBase + (selectedDifficulty.maxEnemiesDelta || 0));
+  const maxEnemies = denseTrafficActive ? maxEnemiesAdjusted + RUN_EVENT_DENSE_TRAFFIC_MAX_BONUS : maxEnemiesAdjusted;
+
+  if (selectedDifficulty.obstaclesEnabled) {
+    state.obstacleSpawnClock += performance.now() - state.lastFrame;
+    if (state.obstacleSpawnClock >= OBSTACLE_SPAWN_INTERVAL_MS) {
+      state.obstacleSpawnClock = 0;
+      spawnObstacle();
+    }
   }
   if (state.enemySpawnClock < spawnInterval || state.enemies.length >= maxEnemies) return;
   state.enemySpawnClock = 0;
@@ -1347,6 +1415,7 @@ function restartRun() {
   state.shieldUntil = 0;
   state.speedProgressBoost = 0;
   state.combo = { count: 0, multiplier: 1, expiresAt: 0, lastSource: null };
+  state.nearMisses = 0;
   state.runEvent = { type: null, endsAt: 0, nextAt: performance.now() + RUN_EVENT_MIN_INTERVAL_MS };
   state.currentModal = null;
 
@@ -1499,7 +1568,8 @@ function init() {
   }
 
   state.lastFrame = performance.now();
-  trackEvent("play_session_start", { vehicle: localStorage.getItem("selectedVehicle") || "PORSHE" });
+  trackEvent("play_session_start", { vehicle: localStorage.getItem(STORAGE_KEYS.selectedVehicle) || "PORSHE", difficulty: selectedDifficulty.id });
+  addFloatingFeedback(`DIFFICULTÉ: ${selectedDifficulty.label.toUpperCase()} · XP x${selectedDifficulty.xpMultiplier}`, "neutral");
   requestAnimationFrame(mainLoop);
 }
 

@@ -63,6 +63,30 @@
       </div>
 
       <div class="overlay hidden" id="overlay"></div>
+
+
+      <section class="popup hidden difficulty-popup" id="difficultyPopup" aria-label="Choix difficulté">
+        <h2>CHOIX DIFFICULTÉ</h2>
+        <p class="difficulty-subtitle">Sélectionne ton style de run</p>
+        <div class="difficulty-cards">
+          <button class="difficulty-card diff-easy" data-difficulty="easy" aria-label="Difficulté facile">
+            <strong>Facile</strong>
+            <span>Trafic très modéré, pas d’obstacle, bots stables.</span>
+            <em>XP x0.25</em>
+          </button>
+          <button class="difficulty-card diff-normal" data-difficulty="normal" aria-label="Difficulté normal">
+            <strong>Normal</strong>
+            <span>Trafic amusant, pas d’obstacle, bots changent rarement de voie.</span>
+            <em>XP x1.00</em>
+          </button>
+          <button class="difficulty-card diff-hard" data-difficulty="hard" aria-label="Difficulté difficile">
+            <strong>Difficile</strong>
+            <span>Trafic actuel dense, obstacles actifs, navigation organique.</span>
+            <em>XP x1.50</em>
+          </button>
+        </div>
+      </section>
+
       <section class="popup hidden" id="garageSettingsPopup" aria-label="Paramètres garage">
         <button class="close-btn" id="closeGarageSettings" aria-label="Fermer">
           <img src="./Assets/UI/Buttons/ui_btn_close_base_v01.svg" alt="Fermer" data-asset-name="ui_btn_close_base_v01.svg" />

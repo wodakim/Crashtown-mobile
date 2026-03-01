@@ -32,3 +32,16 @@
   - `[CT PERF] <page> cold-start: ...ms`
   - `[CT PERF] nav index.html->garage.html: ...ms`
   - `[CT PERF] play.frame: avg=... fps~... max=...`
+
+## Meta progression (Sprint 6)
+- 📱 Finir un run et vérifier l’affichage game over: XP gagné + niveau + statut missions.
+- 📱 Ouvrir popup quêtes et vérifier progression daily + weekly.
+- 📱 Réclamer quêtes complétées et vérifier incrément wallet (pas de double claim).
+- 📱 Redémarrer l’app et confirmer persistance XP/level/missions/wallet.
+
+## Difficulté run (pré-test physique)
+- 📱 Depuis le garage, appuyer Play et vérifier l’apparition des 3 cartes difficulté animées.
+- 📱 Facile: confirmer absence obstacles + trafic plus modéré + bots sans changements de voie.
+- 📱 Normal: confirmer absence obstacles + bots changent rarement de voie.
+- 📱 Difficile: confirmer comportement actuel (obstacles + navigation organique bots).
+- 📱 Vérifier que le game over affiche XP/niveau cohérents selon la difficulté choisie (x0.25 / x1 / x1.5).

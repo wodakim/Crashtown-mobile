@@ -9,7 +9,7 @@ export const GENERATED_VEHICLE_VARIANTS = {
       "yellow": "/Assets/Vehicles/Player/HD/Vehicles_bmw_yellow_HD_base_v01.png"
     },
     "pixel": {
-      "blue": "/Assets/Vehicles/Player/Pixel/Vehicles_bmw_blue_base_v01.png.png",
+      "blue": "/Assets/Vehicles/Player/Pixel/Vehicles_bmw_blue_base_v01.png",
       "green": "/Assets/Vehicles/Player/Pixel/Vehicles_bmw_green_PIXEL_base_v01.png",
       "red": "/Assets/Vehicles/Player/Pixel/Vehicles_bmw_red_PIXEL_base_v01.png",
       "white": "/Assets/Vehicles/Player/Pixel/Vehicles_bmw_white_PIXEL_base_v01.png",

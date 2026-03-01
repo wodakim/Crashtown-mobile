@@ -21,3 +21,14 @@ Le jeu tente un fallback legacy, mais si les fichiers fallback ne sont pas prés
 
 ## Important
 Chaque modification de contenu audio (ajout/retrait/renommage) doit être suivie d'un `npm run radio:scan` avant le build.
+
+
+## Validation stricte (recommandée CI/build)
+
+- `npm run radio:scan:strict`
+
+Ce mode échoue (`exit 1`) sur anomalies bloquantes (doublon, format invalide) et garde les stations vides en avertissement.
+
+- `npm run radio:scan:strict:full`
+
+Ce mode échoue (`exit 1`) aussi si une station est vide (`--fail-on-empty`).
